@@ -20,6 +20,7 @@ namespace HW_21.Multithreading
         static int m;
         static int n;
 
+        static object locker = new object();
         static void Main(string[] args)
         {
             Console.WriteLine("Введите размерность сада:");
@@ -28,12 +29,20 @@ namespace HW_21.Multithreading
 
             garden = new int[n, m];
 
-            ThreadStart threadStart = new ThreadStart(Gardener2);
-            Thread thread = new Thread(threadStart);
-            thread.Start();
+            //ThreadStart threadStart = new ThreadStart(Gardener1);
+            //Thread thread = new Thread(threadStart);
+            //thread.Start();
 
-            Gardener1();
+            //Gardener2();
 
+            Thread gardener1 = new Thread(Gardener1);
+            Thread gardener2 = new Thread(Gardener2);
+
+            gardener1.Start();
+            gardener2.Start();
+
+            gardener1.Join();
+            gardener2.Join();
 
             Console.WriteLine("\nИтоговый сад:\n");
 
@@ -54,8 +63,11 @@ namespace HW_21.Multithreading
             {
                 for (int j = 0; j < m; j++)
                 {
-                    if (garden[i, j] == 0)
-                        garden[i, j] = 1;
+                    lock(locker)
+                    {
+                        if (garden[i, j] == 0)
+                            garden[i, j] = 1;
+                    }
                     Thread.Sleep(3);
                 }
             }
@@ -63,12 +75,15 @@ namespace HW_21.Multithreading
 
         static void Gardener2()
         {
-            for (int i = m - 1; i > 0; i--)
+            for (int i = m - 1; i >= 0; i--)
             {
-                for (int j = n - 1; j > 0; j--)
+                for (int j = n - 1; j >= 0; j--)
                 {
-                    if (garden[j, i] == 0)
-                        garden[j, i] = 2;
+                    lock (locker)
+                    {
+                        if (garden[j, i] == 0)
+                            garden[j, i] = 2;
+                    }
                     Thread.Sleep(3);
                 }
             }
